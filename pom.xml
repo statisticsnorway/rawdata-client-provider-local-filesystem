@@ -75,7 +75,7 @@
         <dependency>
             <groupId>no.ssb.rawdata</groupId>
             <artifactId>rawdata-client-api</artifactId>
-            <version>0.1</version>
+            <version>0.4-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
 

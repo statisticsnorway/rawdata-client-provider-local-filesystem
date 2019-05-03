@@ -84,8 +84,18 @@ public class FileSystemRawdataClient implements RawdataClient {
     }
 
     @Override
+    public String lastPosition(String namespace) {
+        return statePersistence.getLastPosition(namespace).blockingGet();
+    }
+
+    @Override
     public String nextPosition(String namespace) {
         return statePersistence.getNextPosition(namespace).blockingGet();
+    }
+
+    @Override
+    public String offsetPosition(String namespace, String fromPosition, int offset) {
+        return statePersistence.getOffsetPosition(namespace, fromPosition, offset).blockingGet();
     }
 
     @Override

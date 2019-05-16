@@ -50,16 +50,14 @@ public class FileSystemRawdataClientTest {
 
     @Test
     public void thatWriteAndReadAreEqual() throws IOException, InterruptedException {
-        Flowable<CompletedPosition> completedPositionFlowable = rawdataClient.subscribe("ns", "1");
-
-        rawdataClient.publishExpectedPositions("ns", LinkedSet.of("1", "2"));
+        Flowable<CompletedPosition> completedPositionFlowable = rawdataClient.subscription("ns", "1");
 
         byte[] rawdata = "foo".getBytes();
         rawdataClient.write("ns", "1", "file-1.txt", rawdata);
         byte[] readRawData = rawdataClient.read("ns", "1", "file-1.txt");
         assertEquals(rawdata, readRawData);
 
-        rawdataClient.publishCompletedPositions("ns", LinkedSet.of("1"));
+        rawdataClient.publish("ns", LinkedSet.of("1"));
 
         Set<String> positions = rawdataClient.list("ns", "1", "1");
         assertEquals(positions.size(), 1);
@@ -69,7 +67,7 @@ public class FileSystemRawdataClientTest {
                     System.out.printf("received: %s/%s%n", onNext.namespace, onNext.position);
                 }, onError -> onError.printStackTrace());
 
-        rawdataClient.publishCompletedPositions("ns", LinkedSet.of("2"));
+        rawdataClient.publish("ns", LinkedSet.of("2"));
 
         positions = rawdataClient.list("ns", "1", "2");
         assertEquals(positions.size(), 2);

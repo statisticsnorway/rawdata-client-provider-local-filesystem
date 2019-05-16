@@ -99,17 +99,12 @@ public class FileSystemRawdataClient implements RawdataClient {
     }
 
     @Override
-    public void publishExpectedPositions(String namespace, Set<String> expectedPositions) {
-        statePersistence.expectedPagePositions(namespace, expectedPositions).blockingGet();
-    }
-
-    @Override
-    public void publishCompletedPositions(String namespace, Set<String> completedPositions) {
+    public void publish(String namespace, Set<String> completedPositions) {
         statePersistence.trackCompletedPositions(namespace, completedPositions).blockingGet();
     }
 
     @Override
-    public Flowable<CompletedPosition> subscribe(String namespace, String fromPosition) {
+    public Flowable<CompletedPosition> subscription(String namespace, String fromPosition) {
         if (scheduler == null) {
             scheduler = new Scheduler(persistenceQueue, statePersistence, namespace, fromPosition);
         }

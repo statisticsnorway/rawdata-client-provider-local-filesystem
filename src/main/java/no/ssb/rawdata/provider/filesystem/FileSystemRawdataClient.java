@@ -22,7 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class FileSystemRawdataClient implements RawdataClient {
+public class FileSystemRawdataClient implements RawdataClient<CompletedPosition> {
     private final DynamicConfiguration configuration;
     private final String directory;
     private final PersistenceQueue<CompletedPosition> persistenceQueue;

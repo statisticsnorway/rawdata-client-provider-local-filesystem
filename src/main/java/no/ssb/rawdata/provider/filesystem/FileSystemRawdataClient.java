@@ -17,9 +17,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class FileSystemRawdataClient implements RawdataClient<CompletedPosition> {
@@ -117,28 +118,50 @@ public class FileSystemRawdataClient implements RawdataClient<CompletedPosition>
     }
 
     static class Scheduler {
-        private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+        private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+        private final AtomicBoolean handledFirstElement = new AtomicBoolean();
         private final AtomicReference<String> fromPosition = new AtomicReference<>();
 
         public Scheduler(PersistenceQueue<CompletedPosition> persistenceQueue, StatePersistence statePersistence, String namespace, String fromPosition) {
             this.fromPosition.set(fromPosition);
+            executorService.submit(new PollPositionRunner(executorService, persistenceQueue, statePersistence, namespace, this.handledFirstElement, this.fromPosition));
+        }
+    }
 
-            executorService.scheduleAtFixedRate(() -> {
-                String toPosition = statePersistence.getLastPosition(namespace).blockingGet();
-                Flowable<CompletedPosition> flowablePositions = statePersistence.readPositions(namespace, this.fromPosition.get(), toPosition);
+    static class PollPositionRunner implements Runnable {
+        private final ExecutorService executorService;
+        private final PersistenceQueue<CompletedPosition> persistenceQueue;
+        private final StatePersistence statePersistence;
+        private final String namespace;
+        private final AtomicBoolean handledFirstElement;  // assignment from Scheduler
+        private final AtomicReference<String> fromPosition; // assignment from Scheduler
 
-                AtomicReference<CompletedPosition> completedPosition = new AtomicReference<>();
-                flowablePositions.subscribe(onNext ->
-                        {
-                            completedPosition.set(onNext);
+        public PollPositionRunner(ExecutorService executorService, PersistenceQueue<CompletedPosition> persistenceQueue, StatePersistence statePersistence, String namespace, AtomicBoolean handledFirstElement, AtomicReference<String> fromPosition) {
+            this.executorService = executorService;
+            this.persistenceQueue = persistenceQueue;
+            this.statePersistence = statePersistence;
+            this.namespace = namespace;
+            this.handledFirstElement = handledFirstElement;
+            this.fromPosition = fromPosition;
+        }
+
+        @Override
+        public void run() {
+            String toPosition = statePersistence.getLastPosition(namespace).blockingGet();
+            Flowable<CompletedPosition> flowablePositions = statePersistence.readPositions(namespace, this.fromPosition.get(), toPosition);
+
+            flowablePositions.subscribe(onNext ->                    {
+                        if (!handledFirstElement.get() || !onNext.position.equals(fromPosition.get())) {
+                            if (!handledFirstElement.get()) handledFirstElement.set(true);
+                            this.fromPosition.set(onNext.position);
                             persistenceQueue.enqueue(onNext);
-                        }, onError -> onError.printStackTrace(),
-                        () -> {
-                            if (completedPosition.get() != null) {
-                                this.fromPosition.set(completedPosition.get().position);
-                            }
-                        });
-            }, 0L, 1L, TimeUnit.SECONDS);
+                        }
+                    }, onError -> onError.printStackTrace(),
+                    () -> {
+                        TimeUnit.MILLISECONDS.sleep(250);
+                        executorService.submit(new PollPositionRunner(executorService, persistenceQueue, statePersistence, namespace, this.handledFirstElement, this.fromPosition));
+                    });
+
         }
     }
 }

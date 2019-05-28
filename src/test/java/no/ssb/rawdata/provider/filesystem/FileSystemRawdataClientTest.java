@@ -1,6 +1,7 @@
 package no.ssb.rawdata.provider.filesystem;
 
 import io.reactivex.Flowable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import no.ssb.config.DynamicConfiguration;
 import no.ssb.config.StoreBasedDynamicConfiguration;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -23,7 +25,7 @@ import static org.testng.Assert.assertNotNull;
 public class FileSystemRawdataClientTest {
 
     private DynamicConfiguration configuration;
-    private RawdataClient rawdataClient;
+    private RawdataClient<CompletedPosition> rawdataClient;
 
     static DynamicConfiguration configuration() {
         Path currentPath = Paths.get("").toAbsolutePath().resolve("target");
@@ -48,7 +50,7 @@ public class FileSystemRawdataClientTest {
         assertNotNull(rawdataClient);
     }
 
-    @Test
+    @Test //(enabled = false)
     public void thatWriteAndReadAreEqual() throws IOException, InterruptedException {
         Flowable<CompletedPosition> completedPositionFlowable = rawdataClient.subscription("ns", "1");
 
@@ -73,6 +75,30 @@ public class FileSystemRawdataClientTest {
         assertEquals(positions.size(), 2);
 
         Thread.sleep(1000);
+    }
+
+    @Test(enabled = false)
+    public void testName() throws InterruptedException {
+        if (rawdataClient.firstPosition("ns") == null) {
+            rawdataClient.publish("ns", LinkedSet.of(IntStream.rangeClosed(1, 2).mapToObj(i -> String.valueOf(i)).toArray(String[]::new)));
+        }
+
+        Flowable<CompletedPosition> flowable = rawdataClient.subscription("ns", rawdataClient.firstPosition("ns"));
+        Disposable disposable = flowable.subscribeOn(Schedulers.newThread()).observeOn(Schedulers.newThread())
+                .subscribe(onNext -> System.out.printf("onNext: %s%n", onNext.position),
+                        onError -> onError.printStackTrace(),
+                        () -> System.out.printf("I am done!%n"));
+
+        Thread.sleep(250);
+
+        rawdataClient.publish("ns", LinkedSet.of("3"));
+
+        Thread.sleep(500);
+
+//        disposable.dispose();
+
+        Thread.sleep(250);
+
     }
 
 }

@@ -81,7 +81,7 @@
 
         <dependency>
             <groupId>no.ssb.rawdata</groupId>
-            <artifactId>rawdata-state-provider-h2</artifactId>
+            <artifactId>rawdata-client-state-provider-h2</artifactId>
             <version>0.2-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>

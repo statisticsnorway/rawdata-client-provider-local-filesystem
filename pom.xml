@@ -7,8 +7,8 @@
     <version>0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Rawdata Storage Provider Local Filesystem</name>
-    <description>Service Provider API</description>
+    <name>Rawdata Client Storage Provider Local Filesystem</name>
+    <description>Rawdata Client Storage Provider Local Filesystem</description>
     <url>https://github.com/statisticsnorway/</url>
     <inceptionYear>2019</inceptionYear>
 

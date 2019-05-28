@@ -4,7 +4,7 @@
 
     <groupId>no.ssb.rawdata</groupId>
     <artifactId>rawdata-client-storage-provider-local-filesystem</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.3</version>
     <packaging>jar</packaging>
 
     <name>Rawdata Client Storage Provider Local Filesystem</name>
@@ -47,7 +47,7 @@
         <connection>scm:git:git://github.com/statisticsnorway/rawdata-client-provider-local-filesystem.git</connection>
         <developerConnection>scm:git:git@github.com:statisticsnorway/rawdata-client-provider-local-filesystem.git</developerConnection>
         <url>https://github.com/statisticsnorway/rawdata-client-provider-local-filesystem/tree/master</url>
-        <tag>HEAD</tag>
+        <tag>v0.3</tag>
     </scm>
 
     <distributionManagement>

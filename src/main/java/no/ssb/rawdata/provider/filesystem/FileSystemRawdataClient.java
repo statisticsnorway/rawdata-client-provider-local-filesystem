@@ -15,8 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -70,8 +70,8 @@ public class FileSystemRawdataClient implements RawdataClient<CompletedPosition>
     }
 
     @Override
-    public Set<String> list(String namespace, String fromPosition, String toPosition) {
-        Set<String> positionSet = new LinkedHashSet<>();
+    public List<String> list(String namespace, String fromPosition, String toPosition) {
+        List<String> positionSet = new ArrayList<>();
         statePersistence.readPositions(namespace, fromPosition, toPosition)
                 .subscribe(onNext -> positionSet.add(onNext.position), onError -> {
                     throw new RuntimeException(onError);
@@ -100,7 +100,7 @@ public class FileSystemRawdataClient implements RawdataClient<CompletedPosition>
     }
 
     @Override
-    public void publish(String namespace, Set<String> completedPositions) {
+    public void publish(String namespace, List<String> completedPositions) {
         statePersistence.trackCompletedPositions(namespace, completedPositions).blockingGet();
     }
 

@@ -6,7 +6,6 @@ import io.reactivex.schedulers.Schedulers;
 import no.ssb.config.DynamicConfiguration;
 import no.ssb.config.StoreBasedDynamicConfiguration;
 import no.ssb.rawdata.api.state.CompletedPosition;
-import no.ssb.rawdata.api.state.LinkedSet;
 import no.ssb.rawdata.api.storage.RawdataClient;
 import no.ssb.rawdata.api.storage.RawdataClientInitializer;
 import no.ssb.service.provider.api.ProviderConfigurator;
@@ -16,7 +15,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.testng.Assert.assertEquals;
@@ -59,9 +58,9 @@ public class FileSystemRawdataClientTest {
         byte[] readRawData = rawdataClient.read("ns", "1", "file-1.txt");
         assertEquals(rawdata, readRawData);
 
-        rawdataClient.publish("ns", LinkedSet.of("1"));
+        rawdataClient.publish("ns", List.of("1"));
 
-        Set<String> positions = rawdataClient.list("ns", "1", "1");
+        List<String> positions = rawdataClient.list("ns", "1", "1");
         assertEquals(positions.size(), 1);
 
         completedPositionFlowable.subscribeOn(Schedulers.newThread()).observeOn(Schedulers.newThread())
@@ -69,7 +68,7 @@ public class FileSystemRawdataClientTest {
                     System.out.printf("received: %s/%s%n", onNext.namespace, onNext.position);
                 }, onError -> onError.printStackTrace());
 
-        rawdataClient.publish("ns", LinkedSet.of("2"));
+        rawdataClient.publish("ns", List.of("2"));
 
         positions = rawdataClient.list("ns", "1", "2");
         assertEquals(positions.size(), 2);
@@ -80,7 +79,7 @@ public class FileSystemRawdataClientTest {
     @Test(enabled = false)
     public void testName() throws InterruptedException {
         if (rawdataClient.firstPosition("ns") == null) {
-            rawdataClient.publish("ns", LinkedSet.of(IntStream.rangeClosed(1, 2).mapToObj(i -> String.valueOf(i)).toArray(String[]::new)));
+            rawdataClient.publish("ns", List.of(IntStream.rangeClosed(1, 2).mapToObj(i -> String.valueOf(i)).toArray(String[]::new)));
         }
 
         Flowable<CompletedPosition> flowable = rawdataClient.subscription("ns", rawdataClient.firstPosition("ns"));
@@ -91,7 +90,7 @@ public class FileSystemRawdataClientTest {
 
         Thread.sleep(250);
 
-        rawdataClient.publish("ns", LinkedSet.of("3"));
+        rawdataClient.publish("ns", List.of("3"));
 
         Thread.sleep(500);
 

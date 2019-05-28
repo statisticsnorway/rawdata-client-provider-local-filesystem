@@ -75,14 +75,14 @@
         <dependency>
             <groupId>no.ssb.rawdata</groupId>
             <artifactId>rawdata-client-api</artifactId>
-            <version>0.5-SNAPSHOT</version>
+            <version>0.8</version>
             <scope>compile</scope>
         </dependency>
 
         <dependency>
             <groupId>no.ssb.rawdata</groupId>
             <artifactId>rawdata-client-state-provider-h2</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.2</version>
             <scope>test</scope>
         </dependency>
 

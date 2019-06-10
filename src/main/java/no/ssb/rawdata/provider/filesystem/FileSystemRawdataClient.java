@@ -142,6 +142,19 @@ public class FileSystemRawdataClient implements RawdataClient<CompletedPosition>
 
         @Override
         public void run() {
+            if (fromPosition.get() == null) {
+                String newFromPosition = statePersistence.getFirstPosition(namespace).blockingGet();
+                if (newFromPosition == null) {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(250);
+                    } catch (InterruptedException e) {
+                    }
+                    executorService.submit(getTask());
+                    return;
+                }
+                fromPosition.set(newFromPosition);
+            }
+
             String toPosition = statePersistence.getLastPosition(namespace).blockingGet();
             Flowable<CompletedPosition> flowablePositions = statePersistence.readPositions(namespace, this.fromPosition.get(), toPosition);
 
@@ -154,9 +167,13 @@ public class FileSystemRawdataClient implements RawdataClient<CompletedPosition>
                     }, onError -> onError.printStackTrace(),
                     () -> {
                         TimeUnit.MILLISECONDS.sleep(250);
-                        executorService.submit(new PollPositionRunner(executorService, persistenceQueue, statePersistence, namespace, this.handledFirstElement, this.fromPosition));
+                        executorService.submit(getTask());
                     });
 
+        }
+
+        private PollPositionRunner getTask() {
+            return new PollPositionRunner(executorService, persistenceQueue, statePersistence, namespace, this.handledFirstElement, this.fromPosition);
         }
     }
 }

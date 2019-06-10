@@ -76,7 +76,7 @@ public class FileSystemRawdataClientTest {
         Thread.sleep(1000);
     }
 
-    @Test(enabled = false)
+    @Test //(enabled = false)
     public void testName() throws InterruptedException {
         if (rawdataClient.firstPosition("ns") == null) {
             rawdataClient.publish("ns", List.of(IntStream.rangeClosed(1, 2).mapToObj(i -> String.valueOf(i)).toArray(String[]::new)));

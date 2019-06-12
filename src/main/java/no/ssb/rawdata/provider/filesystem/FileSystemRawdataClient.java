@@ -2,6 +2,7 @@ package no.ssb.rawdata.provider.filesystem;
 
 import io.reactivex.Flowable;
 import no.ssb.config.DynamicConfiguration;
+import no.ssb.rawdata.api.persistence.Disposable;
 import no.ssb.rawdata.api.persistence.PersistenceQueue;
 import no.ssb.rawdata.api.state.CompletedPosition;
 import no.ssb.rawdata.api.state.StatePersistence;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class FileSystemRawdataClient implements RawdataClient<CompletedPosition> {
     private final DynamicConfiguration configuration;
@@ -105,6 +107,11 @@ public class FileSystemRawdataClient implements RawdataClient<CompletedPosition>
             scheduler = new Scheduler(persistenceQueue, statePersistence, namespace, fromPosition);
         }
         return persistenceQueue.toFlowable();
+    }
+
+    @Override
+    public Disposable subscribe(String namespace, String fromPosition, Consumer<CompletedPosition> completedPosition) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

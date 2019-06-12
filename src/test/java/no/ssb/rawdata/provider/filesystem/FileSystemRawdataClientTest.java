@@ -1,7 +1,6 @@
 package no.ssb.rawdata.provider.filesystem;
 
 import io.reactivex.Flowable;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import no.ssb.config.DynamicConfiguration;
 import no.ssb.config.StoreBasedDynamicConfiguration;
@@ -82,11 +81,17 @@ public class FileSystemRawdataClientTest {
             rawdataClient.publish("ns", List.of(IntStream.rangeClosed(1, 2).mapToObj(i -> String.valueOf(i)).toArray(String[]::new)));
         }
 
-        Flowable<CompletedPosition> flowable = rawdataClient.subscription("ns", rawdataClient.firstPosition("ns"));
-        Disposable disposable = flowable.subscribeOn(Schedulers.newThread()).observeOn(Schedulers.newThread())
-                .subscribe(onNext -> System.out.printf("onNext: %s%n", onNext.position),
-                        onError -> onError.printStackTrace(),
-                        () -> System.out.printf("I am done!%n"));
+//        Flowable<CompletedPosition> flowable = rawdataClient.subscription("ns", rawdataClient.firstPosition("ns"));
+//        Disposable disposable = flowable.subscribeOn(Schedulers.newThread()).observeOn(Schedulers.newThread())
+//                .subscribe(onNext -> System.out.printf("onNext: %s%n", onNext.position),
+//                        onError -> onError.printStackTrace(),
+//                        () -> System.out.printf("I am done!%n"));
+
+
+        no.ssb.rawdata.api.persistence.Disposable subscription = rawdataClient.subscribe(
+                "ns",
+                rawdataClient.firstPosition("ns"),
+                completedPosition -> System.out.printf("consumed: %s%n", completedPosition.position));
 
         Thread.sleep(250);
 
@@ -94,7 +99,7 @@ public class FileSystemRawdataClientTest {
 
         Thread.sleep(500);
 
-//        disposable.dispose();
+        rawdataClient.publish("ns", List.of("4", "5"));
 
         Thread.sleep(250);
 

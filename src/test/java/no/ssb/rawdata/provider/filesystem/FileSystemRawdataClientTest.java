@@ -4,6 +4,7 @@ import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import no.ssb.config.DynamicConfiguration;
 import no.ssb.config.StoreBasedDynamicConfiguration;
+import no.ssb.rawdata.api.persistence.Disposable;
 import no.ssb.rawdata.api.state.CompletedPosition;
 import no.ssb.rawdata.api.storage.RawdataClient;
 import no.ssb.rawdata.api.storage.RawdataClientInitializer;
@@ -81,17 +82,24 @@ public class FileSystemRawdataClientTest {
             rawdataClient.publish("ns", List.of(IntStream.rangeClosed(1, 2).mapToObj(i -> String.valueOf(i)).toArray(String[]::new)));
         }
 
-//        Flowable<CompletedPosition> flowable = rawdataClient.subscription("ns", rawdataClient.firstPosition("ns"));
-//        Disposable disposable = flowable.subscribeOn(Schedulers.newThread()).observeOn(Schedulers.newThread())
-//                .subscribe(onNext -> System.out.printf("onNext: %s%n", onNext.position),
-//                        onError -> onError.printStackTrace(),
-//                        () -> System.out.printf("I am done!%n"));
+        try (Disposable disposable = rawdataClient.subscribe(
+                "ns",
+                null,
+                completedPosition -> System.out.printf("consumed firstPos=null: %s%n", completedPosition.position))) {
+        }
 
+        Thread.sleep(500);
 
-        no.ssb.rawdata.api.persistence.Disposable subscription = rawdataClient.subscribe(
+        try (Disposable disposable = rawdataClient.subscribe(
                 "ns",
                 rawdataClient.firstPosition("ns"),
-                completedPosition -> System.out.printf("consumed: %s%n", completedPosition.position));
+                completedPosition -> System.out.printf("consumed firstPos=first: %s%n", completedPosition.position))) {
+        }
+
+        Disposable disposable = rawdataClient.subscribe(
+                "ns",
+                "2",
+                completedPosition -> System.out.printf("consumed firstPos=2: %s%n", completedPosition.position));
 
         Thread.sleep(250);
 
@@ -101,8 +109,9 @@ public class FileSystemRawdataClientTest {
 
         rawdataClient.publish("ns", List.of("4", "5"));
 
-        Thread.sleep(250);
+        Thread.sleep(500);
 
+        disposable.close();
     }
 
 }

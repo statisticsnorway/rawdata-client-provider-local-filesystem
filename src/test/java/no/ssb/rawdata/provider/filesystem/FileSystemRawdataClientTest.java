@@ -48,7 +48,7 @@ public class FileSystemRawdataClientTest {
         assertNotNull(rawdataClient);
     }
 
-    @Test //(enabled = false)
+    @Test(enabled = false)
     public void thatWriteAndReadAreEqual() throws IOException, InterruptedException {
         Flowable<CompletedPosition> completedPositionFlowable = rawdataClient.subscription("ns", "1");
 
